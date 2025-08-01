@@ -13,6 +13,7 @@ const tasksRoutes = require('./routes/tasksRoutes');
 const emailRoutes = require('./routes/emailRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const employeeTaskRoutes = require('./routes/employeeTaskRoutes');
+const emailTaskRoutes = require('./routes/emailTaskRoutes');
 
 
 
@@ -91,6 +92,7 @@ app.use('/api/tasks', tasksRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/employeeTask', employeeTaskRoutes);
+app.use('/api/emailTask', emailTaskRoutes);
 
 
 
