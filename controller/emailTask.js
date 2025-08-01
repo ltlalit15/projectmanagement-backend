@@ -98,6 +98,33 @@ const getEmailTaskById = async (req, res) => {
   }
 };
 
+const getEmailTaskByUserId = async (req, res) => {
+  const { assignedTo } = req.params; // Replace with actual field name like assignedTo if needed
+
+  try {
+    const [rows] = await db.query(`SELECT * FROM emailtask WHERE assignedTo = ?`, [assignedTo]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'No tasks found for this user' });
+    }
+
+    // If you want to handle image splitting for each task:
+    const tasks = rows.map(task => ({
+      ...task,
+      image: task.image ? task.image.split(',') : []
+    }));
+
+    res.json({ status: 'success', message: 'Tasks fetched successfully', data: tasks });
+
+  } catch (err) {
+    console.error("getEmailTaskByUserId error:", err);
+    res.status(500).json({ status: 'error', message: 'Server error' });
+  }
+};
+
+
+
+
 
 
 const updateEmailTask = async (req, res) => {
@@ -166,4 +193,4 @@ const deleteEmailTask = async (req, res) => {
 };
 
 
-module.exports = {createEmailTask, getAllEmailTasks, getEmailTaskById, updateEmailTask, deleteEmailTask}
+module.exports = {createEmailTask, getAllEmailTasks, getEmailTaskById, getEmailTaskByUserId, updateEmailTask, deleteEmailTask}
