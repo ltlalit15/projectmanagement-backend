@@ -20,7 +20,7 @@ cloudinary.config({
 
 const createEmailTask = async (req, res) => {
   try {
-    const { title, description, priority, deadline, assignedTo } = req.body;
+    const { title, description, priority, deadline, assignedTo, taskType, invoiceAmount } = req.body;
 
     let imageUrls = [];
 
@@ -41,9 +41,9 @@ const createEmailTask = async (req, res) => {
     const imageStr = imageUrls.join(','); // Store comma-separated in DB
 
     const [result] = await db.query(
-      `INSERT INTO emailtask (title, description, priority, deadline, assignedTo, image)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [title, description, priority, deadline, assignedTo, imageStr]
+      `INSERT INTO emailtask (title, description, priority, deadline, assignedTo, taskType, invoiceAmount, image)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [title, description, priority, deadline, assignedTo, taskType, invoiceAmount, imageStr]
     );
 
     const [created] = await db.query(`SELECT * FROM emailtask WHERE id = ?`, [result.insertId]);
@@ -102,7 +102,7 @@ const getEmailTaskById = async (req, res) => {
 
 const updateEmailTask = async (req, res) => {
   try {
-    const { title, description, priority, deadline, assignedTo } = req.body;
+    const { title, description, priority, deadline, assignedTo, taskType, invoiceAmount } = req.body;
     const { id } = req.params;
 
     let imageUrls = [];
@@ -133,9 +133,9 @@ const updateEmailTask = async (req, res) => {
 
     await db.query(
       `UPDATE emailtask 
-       SET title = ?, description = ?, priority = ?, deadline = ?, assignedTo = ?, image = ?
+       SET title = ?, description = ?, priority = ?, deadline = ?, assignedTo = ?, taskType = ?, invoiceAmount = ?,  image = ?
        WHERE id = ?`,
-      [title, description, priority, deadline, assignedTo, imageStr, id]
+      [title, description, priority, deadline, assignedTo, taskType, invoiceAmount, imageStr, id]
     );
 
     const [updated] = await db.query(`SELECT * FROM emailtask WHERE id = ?`, [id]);
@@ -148,7 +148,6 @@ const updateEmailTask = async (req, res) => {
     res.status(500).json({ status: false, message: err.message });
   }
 };
-
 
 
 const deleteEmailTask = async (req, res) => {
