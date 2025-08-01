@@ -14,6 +14,8 @@ const emailRoutes = require('./routes/emailRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const employeeTaskRoutes = require('./routes/employeeTaskRoutes');
 const emailTaskRoutes = require('./routes/emailTaskRoutes');
+const dailyReportRoutes = require('./routes/dailyReportRoutes');
+const staffDashboardRoutes = require('./routes/staffDashboardRoutes');
 
 
 
@@ -93,6 +95,8 @@ app.use('/api/email', emailRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/employeeTask', employeeTaskRoutes);
 app.use('/api/emailTask', emailTaskRoutes);
+app.use('/api/dailyReport', dailyReportRoutes);
+app.use('/api/staffDashboard', staffDashboardRoutes);
 
 
 
