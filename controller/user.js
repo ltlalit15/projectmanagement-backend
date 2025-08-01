@@ -23,23 +23,26 @@ const upload = multer({ storage: storage });
 
 const addUser = async (req, res) => {
   try {
-    const { name, email, role, permissions, assignedTasks } = req.body;
+    const { name, email, role, password, permissions, assignedTasks } = req.body;
 
     const [existing] = await db.query("SELECT * FROM user WHERE email = ?", [email]);
     if (existing.length > 0) {
       return res.status(409).json({ status: "error", message: "Email already exists" });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);   
+
     // INSERT user
     const [insertResult] = await db.query(
-      "INSERT INTO user (name, email, role, permissions, assignedTasks) VALUES (?, ?, ?, ?, ?)",
-      [name, email, role, JSON.stringify(permissions), JSON.stringify(assignedTasks)]
+      "INSERT INTO user (name, email, role, password, permissions, assignedTasks) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, email, role, hashedPassword, JSON.stringify(permissions), JSON.stringify(assignedTasks)]
     );
 
     // 🔍 SELECT inserted user by insertId
     const [newUserRows] = await db.query("SELECT * FROM user WHERE id = ?", [insertResult.insertId]);
 
     const user = newUserRows[0];
+    delete user.password;
     user.permissions = JSON.parse(user.permissions || '{}');
     user.assignedTasks = JSON.parse(user.assignedTasks || '[]');
 
@@ -97,27 +100,49 @@ const getUserById = async (req, res) => {
     res.status(500).json({ status: "error", message: "Server error" });
   }
 };
+
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, role, permissions, assignedTasks } = req.body;
+    const { name, email, role, password, permissions, assignedTasks } = req.body;
 
     const [user] = await db.query("SELECT * FROM user WHERE id = ?", [id]);
     if (user.length === 0) {
       return res.status(404).json({ status: "error", message: "User not found" });
     }
 
-    await db.query(
-      "UPDATE user SET name = ?, email = ?, role = ?, permissions = ?, assignedTasks = ? WHERE id = ?",
-      [name, email, role, JSON.stringify(permissions), JSON.stringify(assignedTasks), id]
-    );
+    let hashedPasswordClause = '';
+    let queryParams = [name, email, role];
+
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      hashedPasswordClause = ', password = ?';
+      queryParams.push(hashedPassword);
+    }
+
+    queryParams.push(JSON.stringify(permissions), JSON.stringify(assignedTasks), id);
+
+    const query = `
+      UPDATE user
+      SET name = ?, email = ?, role = ?${hashedPasswordClause}, permissions = ?, assignedTasks = ?
+      WHERE id = ?
+    `;
+
+    await db.query(query, queryParams);
 
     const [updated] = await db.query("SELECT * FROM user WHERE id = ?", [id]);
 
-    updated[0].permissions = JSON.parse(updated[0].permissions || '{}');
-    updated[0].assignedTasks = JSON.parse(updated[0].assignedTasks || '[]');
+    const updatedUser = updated[0];
+    delete updatedUser.password;
+    updatedUser.permissions = JSON.parse(updatedUser.permissions || '{}');
+    updatedUser.assignedTasks = JSON.parse(updatedUser.assignedTasks || '[]');
 
-    res.status(200).json({ status: "success", message: "User updated", data: updated[0] });
+    res.status(200).json({
+      status: "success",
+      message: "User updated",
+      data: updatedUser
+    });
+
   } catch (err) {
     console.error("Update user error:", err);
     res.status(500).json({ status: "error", message: "Failed to update user" });
