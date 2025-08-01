@@ -10,8 +10,8 @@ const nodemailer = require('nodemailer');
 
 const addTask = async (req, res) => {
   try {
-    const { title, description, status, priority, assignedTo, dueDate } = req.body;
-
+    const { title, description, status, priority, assignedTo, taskType, invoiceAmount, dueDate } = req.body;
+ 
     // Check if task already exists
     const [existing] = await db.query(
       "SELECT * FROM tasks WHERE title = ? AND assignedTo = ? AND dueDate = ?",
@@ -24,8 +24,8 @@ const addTask = async (req, res) => {
 
     // Insert the new task
     const [insertResult] = await db.query(
-      "INSERT INTO tasks (title, description, status, priority, assignedTo, dueDate) VALUES (?, ?, ?, ?, ?, ?)",
-      [title, description, status, priority, assignedTo, dueDate]
+      "INSERT INTO tasks (title, description, status, priority, assignedTo, taskType, invoiceAmount, dueDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [title, description, status, priority, assignedTo, taskType, invoiceAmount, dueDate]
     );
 
     const insertedId = insertResult.insertId;
@@ -99,7 +99,7 @@ const getTaskById = async (req, res) => {
 const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, status, priority, assignedTo, dueDate } = req.body;
+    const { title, description, status, priority, assignedTo, taskType, invoiceAmount, dueDate } = req.body;
 
     const [existing] = await db.query("SELECT * FROM tasks WHERE id = ?", [id]);
 
@@ -111,8 +111,8 @@ const updateTask = async (req, res) => {
     }
 
     await db.query(
-      "UPDATE tasks SET title = ?, description = ?, status = ?, priority = ?, assignedTo = ?, dueDate = ? WHERE id = ?",
-      [title, description, status, priority, assignedTo, dueDate, id]
+      "UPDATE tasks SET title = ?, description = ?, status = ?, priority = ?, assignedTo = ?, taskType = ?, invoiceAmount = ?,  dueDate = ? WHERE id = ?",
+      [title, description, status, priority, assignedTo, taskType, invoiceAmount, dueDate, id]
     );
 
     const [updatedTask] = await db.query("SELECT * FROM tasks WHERE id = ?", [id]);
